@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "eval:detect": "node --import tsx src/eval/cli.ts",
+    "eval:fixtures": "node --import tsx src/eval/make-fixtures.ts"
 },
   "keywords": [],
   "author": "",

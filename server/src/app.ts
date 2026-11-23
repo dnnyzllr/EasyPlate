@@ -1,6 +1,9 @@
 import cors from "cors";
 import express from "express";
 import type { ErrorRequestHandler, Express } from "express";
+import { createFixtureDetector } from "./detect/fixture.js";
+import type { Detector } from "./detect/types.js";
+import { createIngredientsRouter } from "./routes/ingredients.js";
 import { recipesRouter } from "./routes/recipes.js";
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
@@ -27,9 +30,17 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   res.status(500).json({ error: "Internal server error." });
 };
 
-export function createApp(): Express {
+export interface AppOptions {
+  detector?: Detector;
+}
+
+export function createApp(options: AppOptions = {}): Express {
+  const detector = options.detector ?? createFixtureDetector();
   const app = express();
   app.use(cors());
+  // Mounted before the global parser: it carries its own larger body limit for photos,
+  // and the global 100 KB parser would reject them first.
+  app.use("/api/ingredients", createIngredientsRouter(detector));
   app.use(express.json());
 
   app.get("/", (_req, res) => {
