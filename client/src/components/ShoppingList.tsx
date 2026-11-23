@@ -9,7 +9,7 @@ interface Props {
 
 export default function ShoppingList({ recipe, checked, onToggle }: Props) {
   const staples = stapleNames(recipe)
-  const toBuy = recipe.missing.filter((n) => !staples.includes(n))
+  const toBuy = (recipe.missing ?? []).filter((n) => !staples.includes(n))
   const done = toBuy.filter((n) => checked[n]).length
 
   return (
@@ -21,7 +21,7 @@ export default function ShoppingList({ recipe, checked, onToggle }: Props) {
         <>
           <ul className="checklist">
             {toBuy.map((name) => {
-              const quantity = recipe.ingredients.find((i) => i.name === name)?.quantity
+              const quantity = (recipe.ingredients ?? []).find((i) => i.name === name)?.quantity
               return (
                 <li key={name}>
                   <label>

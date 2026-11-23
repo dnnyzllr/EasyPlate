@@ -37,6 +37,12 @@ export default function App() {
     inputRef.current?.focus()
   }
 
+  function handleClear() {
+    setIngredients([])
+    setFormError(null)
+    inputRef.current?.focus()
+  }
+
   async function runSearch(list: string[]) {
     const id = ++requestId.current
     setStatus('loading')
@@ -48,6 +54,7 @@ export default function App() {
       if (id !== requestId.current) return
       setRecipes(result)
       setStatus('success')
+      inputRef.current?.focus()
     } catch (err) {
       if (id !== requestId.current) return
       setError(
@@ -56,6 +63,7 @@ export default function App() {
           : new ApiError('server', 'Something went wrong. Please try again.'),
       )
       setStatus('error')
+      inputRef.current?.focus()
     }
   }
 
@@ -104,6 +112,18 @@ export default function App() {
   const stale =
     (status === 'success' || status === 'error') && !sameList(ingredients, searchedWith)
 
+  let statusText = ''
+  let statusHidden = false
+  if (loading) statusText = 'Finding recipes…'
+  else if (stale) statusText = 'Your ingredients changed. Search again to update the results.'
+  else if (status === 'success' && recipes.length > 0)
+    statusText = `${recipes.length} ${recipes.length === 1 ? 'recipe matches' : 'recipes match'} ${searchedWith.join(', ')}`
+  else if (status === 'success') {
+    // The visible notice shows this message; keep the live-region copy for screen readers only.
+    statusText = `No recipes use ${searchedWith.join(', ')}.`
+    statusHidden = true
+  }
+
   return (
     <>
       <header>
@@ -116,7 +136,6 @@ export default function App() {
             ingredients={ingredients}
             draft={draft}
             error={formError}
-            disabled={loading}
             inputRef={inputRef}
             onDraftChange={setDraft}
             onAdd={handleAdd}
@@ -127,26 +146,23 @@ export default function App() {
               {loading ? 'Searching…' : 'Find recipes'}
             </button>
             {ingredients.length > 0 && (
-              <button type="button" className="secondary" onClick={() => setIngredients([])}>
+              <button type="button" className="secondary" onClick={handleClear}>
                 Clear all
               </button>
             )}
           </div>
         </form>
 
-        <div aria-live="polite" className="results">
-          {loading && (
-            <p className="loading">
-              <span className="spinner" aria-hidden="true" /> Finding recipes…
-            </p>
-          )}
+        <p aria-live="polite" className={statusText && !statusHidden ? 'muted' : 'visually-hidden'}>
+          {loading && <span className="spinner" aria-hidden="true" />}
+          {loading && ' '}
+          {statusText}
+        </p>
+
+        <div className="results">
           {status === 'success' && recipes.length > 0 && (
             <>
               <h2>Recipes</h2>
-              <p className="muted">
-                {recipes.length} {recipes.length === 1 ? 'recipe matches' : 'recipes match'}{' '}
-                {searchedWith.join(', ')}
-              </p>
               <div className="grid">
                 {recipes.map((r) => (
                   <RecipeCard
@@ -177,11 +193,6 @@ export default function App() {
                 Retry
               </button>
             </div>
-          )}
-          {stale && (
-            <p className="stale">
-              Your ingredients changed. Search again to update the results.
-            </p>
           )}
         </div>
 
