@@ -129,7 +129,7 @@ The response is `{"recipes": RecipeMatch[]}` with at most 3 items. The contract 
 | `steps` | Cooking steps. |
 | `matched` | Canonical names of the non-staple ingredients you have. |
 | `missing` | Canonical names of the non-staple ingredients you need to get. This is the shopping list. |
-| `staples` | The recipe's ingredients that count as on hand: `salt`, `black pepper`, `oil`, `water`. |
+| `staples` | The recipe's ingredients that count as on hand: `salt`, `black pepper`, `oil`, `water`. Unlike `matched` and `missing` (arrays of strings), these are `{name, quantity?}` objects. |
 
 `staples` entries also appear in `ingredients`, but never in `matched` or `missing`. That is intended, not a bug. Clients must not show staples as needed.
 
@@ -296,7 +296,7 @@ If nothing matches, the answer is `200 {"recipes":[]}`, for example for `["choco
 
 ### Errors
 
-All errors are JSON `{"error": string}`.
+Errors from the two endpoints documented here are JSON `{"error": string}`. Unknown paths get Express's default HTML 404 page.
 
 | Status | When | Message |
 |---|---|---|
@@ -392,9 +392,9 @@ This runs a detector locally against labelled photos. It prints misses and false
 
 Steps 1 to 4 use the web client at `http://localhost:5173`. The same cases work on the iPhone, see "Demo walkthrough" in [mobile/README.md](mobile/README.md).
 
-1. Add `chicken`, `rice` and `broccoli` and click Find recipes. You get 3 results, with "Chicken, Broccoli and Rice Bowl" (30 min) first. Its shopping list is soy sauce and garlic. Tick one to see the checklist update.
-2. Enter `eggs`, `bread`, `butter`. "Scrambled Eggs on Toast" comes first, with the message "You have everything for Scrambled Eggs on Toast. No extra ingredients needed."
-3. Enter `chocolate`. You get "No recipes use chocolate. Try adding or changing ingredients." (the API answers `200 {"recipes":[]}`).
+1. Add `chicken`, `rice` and `broccoli` and click Find recipes. You get 3 results, with "Chicken, Broccoli and Rice Bowl" (30 min) first. Click its "Show shopping list" button. The list is soy sauce and garlic. Tick one to see the checklist update.
+2. Click Clear all, then enter `eggs`, `bread`, `butter`, click Find recipes and open the "Show shopping list" button of "Scrambled Eggs on Toast", which comes first. It shows "You have everything for Scrambled Eggs on Toast. No extra ingredients needed."
+3. Click Clear all, then enter `chocolate` and click Find recipes. You get "No recipes use chocolate. Try adding or changing ingredients." (the API answers `200 {"recipes":[]}`).
 4. Optional: stop the server and search to see the error. Start the server again and click Retry.
 5. Photo demo, iPhone only (the web client has no photo UI): type an ingredient, tap Choose photo and pick any picture. The review screen shows the demo notice and sample suggestions, with a "Not sure" item unticked. Edit the list, tap "Add N to my list", then tap Find recipes. More in the "Photo suggestions (demo)" section of [mobile/README.md](mobile/README.md).
 6. Server-only photo demo: run the detect `curl` above and compare with the example response.
