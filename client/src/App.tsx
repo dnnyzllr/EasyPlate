@@ -113,11 +113,16 @@ export default function App() {
     (status === 'success' || status === 'error') && !sameList(ingredients, searchedWith)
 
   let statusText = ''
+  let statusHidden = false
   if (loading) statusText = 'Finding recipes…'
   else if (stale) statusText = 'Your ingredients changed. Search again to update the results.'
   else if (status === 'success' && recipes.length > 0)
     statusText = `${recipes.length} ${recipes.length === 1 ? 'recipe matches' : 'recipes match'} ${searchedWith.join(', ')}`
-  else if (status === 'success') statusText = `No recipes use ${searchedWith.join(', ')}.`
+  else if (status === 'success') {
+    // The visible notice shows this message; keep the live-region copy for screen readers only.
+    statusText = `No recipes use ${searchedWith.join(', ')}.`
+    statusHidden = true
+  }
 
   return (
     <>
@@ -148,7 +153,7 @@ export default function App() {
           </div>
         </form>
 
-        <p aria-live="polite" className={statusText ? 'muted' : 'visually-hidden'}>
+        <p aria-live="polite" className={statusText && !statusHidden ? 'muted' : 'visually-hidden'}>
           {loading && <span className="spinner" aria-hidden="true" />}
           {loading && ' '}
           {statusText}
