@@ -28,7 +28,21 @@ test("keeps first-seen order and merges alias duplicates", () => {
 });
 
 test("staple aliases", () => {
-  assert.deepEqual(normalizeIngredients(["Pepper", "vegetable oil", "oil"]), ["black pepper", "olive oil"]);
+  assert.deepEqual(normalizeIngredients(["Pepper", "vegetable oil", "oil", "Olive Oil"]), ["black pepper", "oil"]);
+});
+
+test("plurals and variants of catalog ingredients", () => {
+  const cases: Record<string, string> = {
+    Onions: "onion", potatoes: "potato", carrots: "carrot", tortillas: "tortilla",
+    tomatoes: "tomato", eggs: "egg", "ground beef": "beef",
+    "cherry tomatoes": "tomato", cucumbers: "cucumber", "olive oil": "oil",
+  };
+  for (const [raw, want] of Object.entries(cases)) assert.equal(normalizeIngredient(raw), want);
+});
+
+test("bell pepper is not silently turned into black pepper", () => {
+  assert.equal(normalizeIngredient("bell pepper"), "bell pepper");
+  assert.equal(normalizeIngredient("red peppers"), "red peppers");
 });
 
 test("every alias target exists in the catalog", () => {

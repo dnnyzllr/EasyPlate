@@ -36,11 +36,11 @@ test("no match returns empty", () => {
 });
 
 test("staples are never missing and do not match on their own", () => {
-  assert.deepEqual(matchRecipes(["salt", "pepper", "oil", "water", "olive oil"]), []);
+  assert.deepEqual(matchRecipes(["salt", "pepper", "oil", "water", "olive oil", "vegetable oil"]), []);
   const r = matchRecipes(["tomato", "salt", "water"]);
   assert.ok(r.length > 0);
   for (const m of r) {
-    for (const s of ["salt", "black pepper", "olive oil", "water"]) assert.ok(!m.missing.includes(s) && !m.matched.includes(s));
+    for (const s of ["salt", "black pepper", "oil", "water"]) assert.ok(!m.missing.includes(s) && !m.matched.includes(s));
   }
   const soup = matchRecipes(["chicken", "rice", "carrot", "onion"])[0]!;
   assert.equal(soup.id, "chicken-rice-soup");

@@ -61,7 +61,7 @@ export const RECIPES: readonly Recipe[] = [
       { name: "tomato", quantity: "3" },
       { name: "garlic", quantity: "2 cloves" },
       { name: "basil", quantity: "a handful" },
-      { name: "olive oil", quantity: "2 tbsp" },
+      { name: "oil", quantity: "2 tbsp" },
     ],
     steps: [
       "Boil the pasta until al dente and drain.",
@@ -166,7 +166,7 @@ export const RECIPES: readonly Recipe[] = [
       { name: "garlic", quantity: "2 cloves" },
       { name: "soy sauce", quantity: "3 tbsp" },
       { name: "onion", quantity: "1" },
-      { name: "olive oil", quantity: "1 tbsp" },
+      { name: "oil", quantity: "1 tbsp" },
     ],
     steps: [
       "Slice the beef and onion thinly.",
@@ -184,7 +184,7 @@ export const RECIPES: readonly Recipe[] = [
       { name: "egg", quantity: "2" },
       { name: "green onion", quantity: "2 stalks" },
       { name: "soy sauce", quantity: "2 tbsp" },
-      { name: "olive oil", quantity: "1 tbsp" },
+      { name: "oil", quantity: "1 tbsp" },
     ],
     steps: [
       "Heat the oil and scramble the eggs.",
@@ -234,7 +234,7 @@ export const RECIPES: readonly Recipe[] = [
       { name: "tomato", quantity: "3" },
       { name: "onion", quantity: "1/2" },
       { name: "cheese", quantity: "80 g" },
-      { name: "olive oil", quantity: "2 tbsp" },
+      { name: "oil", quantity: "2 tbsp" },
       { name: "salt", quantity: "1 pinch" },
     ],
     steps: [

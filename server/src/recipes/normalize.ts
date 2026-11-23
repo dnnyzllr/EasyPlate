@@ -18,8 +18,47 @@ export const INGREDIENT_ALIASES: Readonly<Record<string, string>> = {
   "garlic cloves": "garlic",
   toast: "bread",
   pepper: "black pepper",
-  oil: "olive oil",
-  "vegetable oil": "olive oil",
+  "olive oil": "oil",
+  "vegetable oil": "oil",
+  "extra virgin olive oil": "oil",
+  "cooking oil": "oil",
+  onions: "onion",
+  "yellow onion": "onion",
+  "yellow onions": "onion",
+  "red onion": "onion",
+  "red onions": "onion",
+  "white onion": "onion",
+  "white onions": "onion",
+  potatoes: "potato",
+  carrots: "carrot",
+  tortillas: "tortilla",
+  "flour tortilla": "tortilla",
+  "flour tortillas": "tortilla",
+  cucumbers: "cucumber",
+  "cherry tomato": "tomato",
+  "cherry tomatoes": "tomato",
+  "roma tomato": "tomato",
+  "roma tomatoes": "tomato",
+  "ground beef": "beef",
+  "minced beef": "beef",
+  "beef mince": "beef",
+  "chicken thigh": "chicken",
+  "chicken legs": "chicken",
+  "chicken leg": "chicken",
+  "garlic clove": "garlic",
+  "cloves of garlic": "garlic",
+  "soya sauce": "soy sauce",
+  "romaine lettuce": "lettuce",
+  "basil leaves": "basil",
+  "fresh basil": "basil",
+  "broccoli florets": "broccoli",
+  "bread slices": "bread",
+  "slices of bread": "bread",
+  "black peppers": "black pepper",
+  "ground pepper": "black pepper",
+  "ground black pepper": "black pepper",
+  "sea salt": "salt",
+  "table salt": "salt",
 };
 
 export function normalizeIngredient(raw: string): string {
@@ -39,7 +78,7 @@ export function normalizeIngredients(raw: readonly string[]): string[] {
 }
 
 /** Canonical names assumed to be on hand in every kitchen. */
-export const STAPLES: ReadonlySet<string> = new Set(["salt", "black pepper", "olive oil", "water"]);
+export const STAPLES: ReadonlySet<string> = new Set(["salt", "black pepper", "oil", "water"]);
 
 export function isStaple(name: string): boolean {
   return STAPLES.has(name);
