@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import type { DetectCandidate } from "../detect/contract.js";
 import { MAX_IMAGE_BYTES, sniffImageType } from "../detect/image.js";
@@ -8,6 +9,9 @@ import { createDetector } from "../detect/registry.js";
 import type { Detector, SupportedImageType } from "../detect/types.js";
 import { aggregate, parseManifest, scoreImage } from "./evaluate.js";
 import type { ImageScore, ManifestImage } from "./evaluate.js";
+
+// src/eval (or dist/eval) -> server package root, so default output never depends on the cwd.
+const SERVER_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 // Local evaluation only: reads image files from disk and runs the detector in-process.
 // Nothing is uploaded, and image bytes are never printed or stored.
@@ -134,7 +138,7 @@ console.log(
 
 const timestamp = new Date().toISOString();
 const outPath =
-  args.out ?? path.join("eval", "runs", `${timestamp.replace(/[:.]/g, "-")}-${detector.info.id}.json`);
+  args.out ?? path.join(SERVER_ROOT, "eval", "runs", `${timestamp.replace(/[:.]/g, "-")}-${detector.info.id}.json`);
 await mkdir(path.dirname(path.resolve(outPath)), { recursive: true });
 await writeFile(
   outPath,

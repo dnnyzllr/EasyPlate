@@ -87,6 +87,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  function showPhotoNotice(text: string, settings = false) {
+    setPhotoNotice({ text, settings });
+    announce(text);
+  }
+
   function handleAdd(raw: string) {
     const next = addEntries(ingredients, raw);
     setIngredients(next);
@@ -106,9 +111,16 @@ export default function App() {
     setPhoto({ phase: 'uploading', uri });
     setView({ name: 'photoReview' });
     Keyboard.dismiss();
+    announce('Looking for ingredients');
     try {
       const res = await detectIngredients(API_CONFIG.baseUrl, { base64, mimeType });
       if (id !== photoRequestId.current) return;
+      const suggested = res.candidates.length;
+      announce(
+        suggested === 0
+          ? 'No ingredients found. Add what you see, or type them instead.'
+          : `${suggested} ${suggested === 1 ? 'suggestion' : 'suggestions'} ready to review`,
+      );
       setPhoto({
         phase: 'review',
         uri,
@@ -118,13 +130,15 @@ export default function App() {
       });
     } catch (err) {
       if (id !== photoRequestId.current) return;
+      const apiErr =
+        err instanceof ApiError
+          ? err
+          : new ApiError('server', 'Something went wrong. Please try again.');
+      announce(apiErr.message);
       setPhoto({
         phase: 'error',
         uri,
-        error:
-          err instanceof ApiError
-            ? err
-            : new ApiError('server', 'Something went wrong. Please try again.'),
+        error: apiErr,
         retry: { base64, mimeType },
       });
     }
@@ -148,22 +162,19 @@ export default function App() {
         return;
       case 'denied': {
         const what = source === 'camera' ? 'camera' : 'photos';
-        setPhotoNotice({
-          text: result.canAskAgain
+        showPhotoNotice(
+          result.canAskAgain
             ? `EasyPlate can't use the ${what}. Allow access when asked, or type your ingredients.`
             : `EasyPlate can't use the ${what}. Allow access in Settings, or type your ingredients.`,
-          settings: !result.canAskAgain,
-        });
+          !result.canAskAgain,
+        );
         return;
       }
       case 'tooLarge':
-        setPhotoNotice({
-          text: 'That photo is over 5 MB. Try another, or type your ingredients.',
-          settings: false,
-        });
+        showPhotoNotice('That photo is over 5 MB. Try another, or type your ingredients.');
         return;
       case 'failed':
-        setPhotoNotice({ text: result.message, settings: false });
+        showPhotoNotice(result.message);
         return;
       case 'ok':
         void upload(result.uri, result.base64, result.mimeType);
@@ -181,10 +192,11 @@ export default function App() {
     ++photoRequestId.current;
     setPhoto({ phase: 'idle' });
     setView({ name: 'search' });
-    setPhotoNotice({
-      text: `Added ${added} ${added === 1 ? 'ingredient' : 'ingredients'} from your photo. Review the list, then tap Find recipes.`,
-      settings: false,
-    });
+    showPhotoNotice(
+      added === 0
+        ? 'Those ingredients were already on your list.'
+        : `Added ${added} ${added === 1 ? 'ingredient' : 'ingredients'} from your photo. Review the list, then tap Find recipes.`,
+    );
   }
 
   function handleCancelPhoto() {

@@ -134,7 +134,13 @@ export default function PhotoReviewScreen(props: Props) {
                 Check what we found
               </Text>
             </View>
-            <Image source={{ uri: photoUri }} style={s.thumb} accessibilityLabel="Your photo" />
+            <Image
+              source={{ uri: photoUri }}
+              style={s.thumb}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel="Your photo"
+            />
           </View>
 
           {phase === 'uploading' ? (
@@ -193,11 +199,18 @@ export default function PhotoReviewScreen(props: Props) {
                     <View key={item.name} style={s.row}>
                       <Pressable
                         accessibilityRole="checkbox"
+                        accessibilityLabel={[
+                          item.name,
+                          tag === 'Not sure' ? 'not sure' : tag === 'Added by you' ? 'added by you' : null,
+                          item.alreadyInList ? 'already in your list' : null,
+                        ]
+                          .filter(Boolean)
+                          .join(', ')}
                         accessibilityState={{ checked: item.selected }}
                         onPress={() => onToggle(item.name)}
                         style={s.toggle}
                       >
-                        <Text style={s.box}>{item.selected ? '☑' : '☐'}</Text>
+                        <Text style={s.box} accessible={false} importantForAccessibility="no">{item.selected ? '☑' : '☐'}</Text>
                         <Text style={s.name}>{item.name}</Text>
                         {tag ? <Text style={s.tag}>{tag}</Text> : null}
                         {item.alreadyInList ? <Text style={s.tag}>Already in your list</Text> : null}
