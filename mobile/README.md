@@ -77,6 +77,19 @@ Stop Metro (Ctrl+C) and run `npx expo start -c`. `EXPO_PUBLIC_*` values are inli
 7. Delete `.env` and restart with `npx expo start -c`. The "not set" banner appears.
 8. With the keyboard open: chips, the remove buttons and Find recipes stay tappable. Dark mode is readable, and nothing sits under the notch or home indicator.
 
+## Photo suggestions (demo)
+
+- **Flow:** tap Take photo or Choose photo, review the suggestions, then tap "Add N to my list". Nothing is searched until you tap Find recipes.
+- **Demo detector:** the server's fixture detector ignores image content and returns sample ingredients, and the review screen says so. The photo goes only to your own EasyPlate server on your network. The server keeps it in memory for the request and does not store or log it. No recognition service is called. See `server/docs/ingredient-detection.md`.
+- **Permissions:** Expo Go shows its own permission prompts (the strings in `app.json` apply to standalone builds). If you denied camera or photo access, re-enable it in Settings > Expo Go > Camera / Photos.
+- **Limits:** photos over 5 MB are refused before upload. The app asks for JPEG.
+- **Not tested on a physical iPhone.** On-device checks:
+  1. Type `milk`. Tap Choose photo and pick any photo. "Looking for ingredients…" appears, then the review screen with the demo notice. At least one item is "Not sure" and unticked.
+  2. Untick one, remove one, and add `butter` via "Add something we missed". Tap "Add N to my list". You are back on search with `milk` still there, plus the confirmed items and no duplicates. No search runs until you tap Find.
+  3. Tap Take photo and deny the camera permission. A notice appears and the chips are unchanged. Re-enable it in Settings > Expo Go > Camera.
+  4. Open the camera and cancel. Nothing changes.
+  5. Stop the server and choose a photo. The error appears with "Try again" and "Type ingredients instead". The latter returns to search with the input focused.
+
 ## 11. Troubleshooting
 
 | Symptom | Likely cause and fix |

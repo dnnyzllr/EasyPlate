@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { ComponentRef, RefObject } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { radius, useTheme } from '../theme';
+import PrimaryButton from './PrimaryButton';
 import type { Palette } from '../theme';
 
 interface Props {
@@ -14,6 +15,9 @@ interface Props {
   onAdd(raw: string): void;
   onRemove(name: string): void;
   onSubmitEmpty(): void;
+  onTakePhoto(): void;
+  onChoosePhoto(): void;
+  photoBusy: boolean;
 }
 
 const LABEL_ID = 'ingredient-input-label';
@@ -48,6 +52,8 @@ function makeStyles(p: Palette) {
     remove: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
     removeText: { color: p.text, fontSize: 20, lineHeight: 22 },
     error: { color: p.danger, fontSize: 14, marginTop: 6 },
+    photoRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
+    photoButton: { flex: 1 },
   });
 }
 
@@ -61,6 +67,9 @@ export default function IngredientInput({
   onAdd,
   onRemove,
   onSubmitEmpty,
+  onTakePhoto,
+  onChoosePhoto,
+  photoBusy,
 }: Props) {
   const { palette } = useTheme();
   const s = useMemo(() => makeStyles(palette), [palette]);
@@ -113,7 +122,26 @@ export default function IngredientInput({
         maxLength={80}
         style={[s.input, error ? s.inputError : null]}
       />
-      {/* Task 012: "Add from photo" button goes here (opens photoReview view). */}
+      <View style={s.photoRow}>
+        <View style={s.photoButton}>
+          <PrimaryButton
+            label="Take photo"
+            variant="secondary"
+            onPress={onTakePhoto}
+            disabled={disabled || photoBusy}
+            accessibilityHint="Suggests ingredients from a photo for you to review"
+          />
+        </View>
+        <View style={s.photoButton}>
+          <PrimaryButton
+            label="Choose photo"
+            variant="secondary"
+            onPress={onChoosePhoto}
+            disabled={disabled || photoBusy}
+            accessibilityHint="Suggests ingredients from a photo for you to review"
+          />
+        </View>
+      </View>
       {error ? (
         <Text style={s.error} accessibilityRole="alert" accessibilityLiveRegion="polite">
           {error}

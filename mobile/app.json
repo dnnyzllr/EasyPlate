@@ -17,6 +17,16 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "EasyPlate uses your photos to suggest the ingredients you have.",
+          "cameraPermission": "EasyPlate uses the camera to photograph your fridge and suggest ingredients.",
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }

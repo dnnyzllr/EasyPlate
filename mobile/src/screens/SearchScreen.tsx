@@ -29,6 +29,11 @@ interface Props {
   onRetry(): void;
   onEdit(): void;
   onOpen(id: string): void;
+  photoBusy: boolean;
+  photoNotice: { text: string; settings: boolean } | null;
+  onTakePhoto(): void;
+  onChoosePhoto(): void;
+  onOpenSettings(): void;
 }
 
 function sameList(a: readonly string[], b: readonly string[]): boolean {
@@ -51,6 +56,8 @@ function makeStyles(p: Palette) {
     },
     bannerText: { color: p.danger, fontSize: 15 },
     warn: { color: p.danger, fontSize: 14, marginBottom: 12 },
+    notice: { marginTop: 10, gap: 8, alignItems: 'flex-start' },
+    noticeText: { color: p.text, fontSize: 15 },
     actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
     status: { marginTop: 8 },
     loading: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 },
@@ -69,6 +76,7 @@ export default function SearchScreen(props: Props) {
   const {
     ingredients, draft, formError, status, recipes, searchedWith, error,
     inputRef, scrollRef, onDraftChange, onAdd, onRemove, onFind, onClear, onRetry, onEdit, onOpen,
+    photoBusy, photoNotice, onTakePhoto, onChoosePhoto, onOpenSettings,
   } = props;
   const { palette } = useTheme();
   const s = useMemo(() => makeStyles(palette), [palette]);
@@ -115,7 +123,20 @@ export default function SearchScreen(props: Props) {
             onAdd={onAdd}
             onRemove={onRemove}
             onSubmitEmpty={onFind}
+            onTakePhoto={onTakePhoto}
+            onChoosePhoto={onChoosePhoto}
+            photoBusy={photoBusy}
           />
+          <View accessibilityLiveRegion="polite">
+            {photoNotice ? (
+              <View style={s.notice}>
+                <Text style={s.noticeText}>{photoNotice.text}</Text>
+                {photoNotice.settings ? (
+                  <PrimaryButton label="Open Settings" variant="secondary" onPress={onOpenSettings} />
+                ) : null}
+              </View>
+            ) : null}
+          </View>
           <View style={s.actions}>
             <PrimaryButton
               label={loading ? 'Searching…' : 'Find recipes'}

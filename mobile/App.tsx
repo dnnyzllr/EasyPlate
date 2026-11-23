@@ -1,18 +1,41 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, BackHandler, Keyboard, Platform, ScrollView, TextInput, View } from 'react-native';
+import { AccessibilityInfo, BackHandler, Keyboard, Linking, Platform, ScrollView, TextInput, View } from 'react-native';
 import type { ComponentRef } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { API_CONFIG } from './src/config';
-import { ApiError, matchRecipes } from './src/lib/api';
+import type { DetectorRef } from './src/detectTypes';
+import { ApiError, detectIngredients, matchRecipes } from './src/lib/api';
 import { addEntries, removeEntry } from './src/lib/ingredients';
+import {
+  addMissed,
+  confirmedNames,
+  initReview,
+  isLowQuality,
+  removeItem,
+  toggleItem,
+} from './src/lib/photoReview';
+import type { ReviewItem } from './src/lib/photoReview';
+import { pickPhoto } from './src/lib/pickPhoto';
+import PhotoReviewScreen from './src/screens/PhotoReviewScreen';
 import RecipeScreen from './src/screens/RecipeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import { useTheme } from './src/theme';
 import type { RecipeMatch, Status } from './src/types';
 
-// Task 012 adds { name: 'photoReview'; ... } here.
-type AppView = { name: 'search' } | { name: 'recipe'; id: string };
+type AppView = { name: 'search' } | { name: 'recipe'; id: string } | { name: 'photoReview' };
+
+// Base64 is held only in error.retry, so "Try again" can re-send without re-picking.
+type PhotoState =
+  | { phase: 'idle' }
+  | { phase: 'uploading'; uri: string }
+  | { phase: 'review'; uri: string; items: ReviewItem[]; lowQuality: boolean; detector: DetectorRef }
+  | { phase: 'error'; uri: string; error: ApiError; retry: { base64: string; mimeType: string } };
+
+interface PhotoNotice {
+  text: string;
+  settings: boolean;
+}
 
 export default function App() {
   const { palette } = useTheme();
@@ -28,16 +51,22 @@ export default function App() {
   const inputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
   const scrollRef = useRef<ComponentRef<typeof ScrollView> | null>(null);
   const requestId = useRef(0);
+  const [photo, setPhoto] = useState<PhotoState>({ phase: 'idle' });
+  const [photoNotice, setPhotoNotice] = useState<PhotoNotice | null>(null);
+  const photoRequestId = useRef(0);
 
   const inRecipe = view.name === 'recipe';
+  const inPhoto = view.name === 'photoReview';
   useEffect(() => {
-    if (!inRecipe) return;
+    if (!inRecipe && !inPhoto) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setView({ name: 'search' });
+      if (inPhoto) handleCancelPhoto();
+      else setView({ name: 'search' });
       return true;
     });
     return () => sub.remove();
-  }, [inRecipe]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inRecipe, inPhoto]);
 
   // Android announces changes through accessibilityLiveRegion. iOS has no
   // equivalent, so VoiceOver is told explicitly.
@@ -61,12 +90,121 @@ export default function App() {
   function handleAdd(raw: string) {
     const next = addEntries(ingredients, raw);
     setIngredients(next);
+    setPhotoNotice(null);
     if (next.length > ingredients.length) setFormError(null);
   }
 
   function handleRemove(name: string) {
     setIngredients(removeEntry(ingredients, name));
+    setPhotoNotice(null);
     inputRef.current?.focus();
+  }
+
+  async function upload(uri: string, base64: string, mimeType: string) {
+    if (!API_CONFIG.ok) return;
+    const id = ++photoRequestId.current;
+    setPhoto({ phase: 'uploading', uri });
+    setView({ name: 'photoReview' });
+    Keyboard.dismiss();
+    try {
+      const res = await detectIngredients(API_CONFIG.baseUrl, { base64, mimeType });
+      if (id !== photoRequestId.current) return;
+      setPhoto({
+        phase: 'review',
+        uri,
+        items: initReview(res.candidates, ingredients),
+        lowQuality: isLowQuality(res.candidates),
+        detector: res.detector,
+      });
+    } catch (err) {
+      if (id !== photoRequestId.current) return;
+      setPhoto({
+        phase: 'error',
+        uri,
+        error:
+          err instanceof ApiError
+            ? err
+            : new ApiError('server', 'Something went wrong. Please try again.'),
+        retry: { base64, mimeType },
+      });
+    }
+  }
+
+  async function handlePhoto(source: 'camera' | 'library') {
+    if (photo.phase === 'uploading') return;
+    setPhotoNotice(null);
+    if (!API_CONFIG.ok) {
+      // The config banner is already on screen; this tells VoiceOver.
+      announce(
+        API_CONFIG.reason === 'missing'
+          ? 'EXPO_PUBLIC_API_URL is not set. See the message on screen.'
+          : 'EXPO_PUBLIC_API_URL is invalid. See the message on screen.',
+      );
+      return;
+    }
+    const result = await pickPhoto(source);
+    switch (result.kind) {
+      case 'cancelled':
+        return;
+      case 'denied': {
+        const what = source === 'camera' ? 'camera' : 'photos';
+        setPhotoNotice({
+          text: result.canAskAgain
+            ? `EasyPlate can't use the ${what}. Allow access when asked, or type your ingredients.`
+            : `EasyPlate can't use the ${what}. Allow access in Settings, or type your ingredients.`,
+          settings: !result.canAskAgain,
+        });
+        return;
+      }
+      case 'tooLarge':
+        setPhotoNotice({
+          text: 'That photo is over 5 MB. Try another, or type your ingredients.',
+          settings: false,
+        });
+        return;
+      case 'failed':
+        setPhotoNotice({ text: result.message, settings: false });
+        return;
+      case 'ok':
+        void upload(result.uri, result.base64, result.mimeType);
+        return;
+    }
+  }
+
+  function handleConfirmPhoto() {
+    if (photo.phase !== 'review') return;
+    const names = confirmedNames(photo.items);
+    // Merge through the normal add path: keeps typed chips and the draft, and dedupes.
+    // This deliberately does not search. The user taps Find when ready.
+    handleAdd(names.join(','));
+    const added = names.filter((n) => !ingredients.includes(n)).length;
+    ++photoRequestId.current;
+    setPhoto({ phase: 'idle' });
+    setView({ name: 'search' });
+    setPhotoNotice({
+      text: `Added ${added} ${added === 1 ? 'ingredient' : 'ingredients'} from your photo. Review the list, then tap Find recipes.`,
+      settings: false,
+    });
+  }
+
+  function handleCancelPhoto() {
+    ++photoRequestId.current;
+    setPhoto({ phase: 'idle' });
+    setView({ name: 'search' });
+  }
+
+  function handleTypeInstead() {
+    handleCancelPhoto();
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }
+
+  function handleRetryPhoto() {
+    if (photo.phase !== 'error') return;
+    void upload(photo.uri, photo.retry.base64, photo.retry.mimeType);
+  }
+
+  function updateItems(fn: (items: ReviewItem[]) => ReviewItem[]) {
+    setPhoto((p) => (p.phase === 'review' ? { ...p, items: fn(p.items) } : p));
   }
 
   async function runSearch(list: string[]) {
@@ -95,6 +233,7 @@ export default function App() {
 
   function handleFind() {
     if (status === 'loading') return;
+    setPhotoNotice(null);
     const list = addEntries(ingredients, draft);
     setIngredients(list);
     setDraft('');
@@ -140,7 +279,24 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="auto" />
       <View style={{ flex: 1, backgroundColor: palette.background }}>
-        {current ? (
+        {view.name === 'photoReview' && photo.phase !== 'idle' ? (
+          <PhotoReviewScreen
+            phase={photo.phase}
+            photoUri={photo.uri}
+            items={photo.phase === 'review' ? photo.items : []}
+            lowQuality={photo.phase === 'review' ? photo.lowQuality : false}
+            detector={photo.phase === 'review' ? photo.detector : null}
+            error={photo.phase === 'error' ? photo.error : null}
+            baseUrl={API_CONFIG.ok ? API_CONFIG.baseUrl : ''}
+            onToggle={(name) => updateItems((items) => toggleItem(items, name))}
+            onRemove={(name) => updateItems((items) => removeItem(items, name))}
+            onAddMissed={(raw) => updateItems((items) => addMissed(items, raw, ingredients))}
+            onConfirm={handleConfirmPhoto}
+            onCancel={handleCancelPhoto}
+            onRetry={handleRetryPhoto}
+            onTypeInstead={handleTypeInstead}
+          />
+        ) : current ? (
           <RecipeScreen
             recipe={current}
             checked={checked[current.id] ?? {}}
@@ -166,6 +322,11 @@ export default function App() {
             onRetry={handleRetry}
             onEdit={handleEdit}
             onOpen={(id) => setView({ name: 'recipe', id })}
+            photoBusy={photo.phase === 'uploading'}
+            photoNotice={photoNotice}
+            onTakePhoto={() => void handlePhoto('camera')}
+            onChoosePhoto={() => void handlePhoto('library')}
+            onOpenSettings={() => void Linking.openSettings()}
           />
         )}
       </View>
