@@ -4,7 +4,6 @@ interface Props {
   ingredients: string[]
   draft: string
   error: string | null
-  disabled: boolean
   inputRef: RefObject<HTMLInputElement | null>
   onDraftChange(value: string): void
   onAdd(raw: string): void
@@ -15,7 +14,6 @@ export default function IngredientInput({
   ingredients,
   draft,
   error,
-  disabled,
   inputRef,
   onDraftChange,
   onAdd,
@@ -62,7 +60,6 @@ export default function IngredientInput({
         enterKeyHint="done"
         maxLength={80}
         value={draft}
-        disabled={disabled}
         aria-describedby={describedBy}
         aria-invalid={error ? true : undefined}
         onChange={handleChange}
