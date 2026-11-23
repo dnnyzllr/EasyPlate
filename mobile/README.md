@@ -85,6 +85,7 @@ Stop Metro (Ctrl+C) and run `npx expo start -c`. `EXPO_PUBLIC_*` values are inli
 | "Can't reach..." | Safari health check, firewall, same Wi-Fi, IP changed (DHCP) |
 | Timeout | Wrong IP, or the PC is on a different network |
 | QR won't open | Expo Go SDK mismatch, or not logged in |
+| QR code or bundle URL has the wrong IP (common with Hyper-V, WSL or VPN adapters) | In PowerShell, set the LAN IP Metro should advertise, then start Expo: `$env:REACT_NATIVE_PACKAGER_HOSTNAME = "192.168.1.50"; npx expo start` (use your own LAN IP from `ipconfig`) |
 
 ## 12. Commands
 

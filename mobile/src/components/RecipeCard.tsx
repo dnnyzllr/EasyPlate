@@ -31,9 +31,14 @@ export default function RecipeCard({ recipe, onOpen }: Props) {
   const { palette } = useTheme();
   const s = useMemo(() => makeStyles(palette), [palette]);
   const total = recipe.matched.length + recipe.missing.length;
+  const missing =
+    recipe.missing.length > 0
+      ? `missing ${recipe.missing.length}: ${recipe.missing.join(', ')}`
+      : 'missing nothing';
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={`${recipe.title}, about ${recipe.totalMinutes} minutes, you have ${recipe.matched.length} of ${total}, ${missing}`}
       accessibilityHint="Opens recipe details and shopping list"
       onPress={() => onOpen(recipe.id)}
       style={({ pressed }) => [s.card, pressed && s.pressed]}
@@ -46,7 +51,9 @@ export default function RecipeCard({ recipe, onOpen }: Props) {
       <Text style={s.line}>
         Missing: {recipe.missing.length > 0 ? recipe.missing.join(', ') : 'nothing'}
       </Text>
-      <Text style={s.view}>View recipe ›</Text>
+      <Text style={s.view} accessibilityElementsHidden importantForAccessibility="no">
+        View recipe ›
+      </Text>
     </Pressable>
   );
 }

@@ -50,7 +50,12 @@ export default function RecipeScreen({ recipe, checked, onToggle, onBack }: Prop
           contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}
         >
           <View style={s.back}>
-            <PrimaryButton label="‹ Back to recipes" variant="secondary" onPress={onBack} />
+            <PrimaryButton
+              label="‹ Back to recipes"
+              accessibilityLabel="Back to recipes"
+              variant="secondary"
+              onPress={onBack}
+            />
           </View>
           <Text style={s.title} accessibilityRole="header">
             {recipe.title}

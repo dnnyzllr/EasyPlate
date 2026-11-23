@@ -9,6 +9,8 @@ interface Props {
   disabled?: boolean;
   variant?: 'primary' | 'secondary';
   accessibilityHint?: string;
+  /** Spoken label when it should differ from the visible text (for example one with arrow glyphs). */
+  accessibilityLabel?: string;
 }
 
 function makeStyles(p: Palette) {
@@ -37,6 +39,7 @@ export default function PrimaryButton({
   disabled = false,
   variant = 'primary',
   accessibilityHint,
+  accessibilityLabel,
 }: Props) {
   const { palette } = useTheme();
   const s = useMemo(() => makeStyles(palette), [palette]);
@@ -44,7 +47,7 @@ export default function PrimaryButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
       disabled={disabled}

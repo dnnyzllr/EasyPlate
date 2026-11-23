@@ -1,8 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { BackHandler, Keyboard, View } from 'react-native';
+import { AccessibilityInfo, BackHandler, Keyboard, Platform, ScrollView, TextInput, View } from 'react-native';
 import type { ComponentRef } from 'react';
-import { ScrollView, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { API_CONFIG } from './src/config';
 import { ApiError, matchRecipes } from './src/lib/api';
@@ -10,11 +9,10 @@ import { addEntries, removeEntry } from './src/lib/ingredients';
 import RecipeScreen from './src/screens/RecipeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import { useTheme } from './src/theme';
-import type { RecipeMatch } from './src/types';
+import type { RecipeMatch, Status } from './src/types';
 
-type Status = 'idle' | 'loading' | 'success' | 'error';
 // Task 012 adds { name: 'photoReview'; ... } here.
-type View_ = { name: 'search' } | { name: 'recipe'; id: string };
+type AppView = { name: 'search' } | { name: 'recipe'; id: string };
 
 export default function App() {
   const { palette } = useTheme();
@@ -25,7 +23,7 @@ export default function App() {
   const [recipes, setRecipes] = useState<RecipeMatch[]>([]);
   const [searchedWith, setSearchedWith] = useState<string[]>([]);
   const [error, setError] = useState<ApiError | null>(null);
-  const [view, setView] = useState<View_>({ name: 'search' });
+  const [view, setView] = useState<AppView>({ name: 'search' });
   const [checked, setChecked] = useState<Record<string, Record<string, boolean>>>({});
   const inputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
   const scrollRef = useRef<ComponentRef<typeof ScrollView> | null>(null);
@@ -40,6 +38,25 @@ export default function App() {
     });
     return () => sub.remove();
   }, [inRecipe]);
+
+  // Android announces changes through accessibilityLiveRegion. iOS has no
+  // equivalent, so VoiceOver is told explicitly.
+  function announce(message: string) {
+    if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+  }
+
+  // Announce only when a search starts or finishes, not on every list change.
+  useEffect(() => {
+    if (status === 'loading') announce('Finding recipes');
+    else if (status === 'success') {
+      announce(
+        recipes.length === 0
+          ? 'No recipes match. Try adding or changing ingredients.'
+          : `${recipes.length} ${recipes.length === 1 ? 'recipe matches' : 'recipes match'}`,
+      );
+    } else if (status === 'error' && error) announce(error.message);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   function handleAdd(raw: string) {
     const next = addEntries(ingredients, raw);
@@ -87,7 +104,14 @@ export default function App() {
       return;
     }
     setFormError(null);
-    if (!API_CONFIG.ok) return;
+    if (!API_CONFIG.ok) {
+      announce(
+        API_CONFIG.reason === 'missing'
+          ? 'EXPO_PUBLIC_API_URL is not set. See the message on screen.'
+          : 'EXPO_PUBLIC_API_URL is invalid. See the message on screen.',
+      );
+      return;
+    }
     void runSearch(list);
   }
 

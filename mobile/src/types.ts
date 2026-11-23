@@ -25,3 +25,5 @@ export interface MatchResponse {
 export interface ErrorResponse {
   error: string;
 }
+
+export type Status = 'idle' | 'loading' | 'success' | 'error';

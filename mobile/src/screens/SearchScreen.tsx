@@ -9,9 +9,7 @@ import { API_CONFIG } from '../config';
 import type { ApiError } from '../lib/api';
 import { radius, serifFamily, useTheme } from '../theme';
 import type { Palette } from '../theme';
-import type { RecipeMatch } from '../types';
-
-type Status = 'idle' | 'loading' | 'success' | 'error';
+import type { RecipeMatch, Status } from '../types';
 
 interface Props {
   ingredients: string[];
@@ -164,12 +162,13 @@ export default function SearchScreen(props: Props) {
             {status === 'error' && error ? (
               <View style={s.errorBox}>
                 <Text style={s.errorText}>{error.message}</Text>
-                {API_CONFIG.ok ? (
+                {error.kind === 'rejected' ? (
+                  <Text style={s.hint}>Check your ingredients and try again.</Text>
+                ) : API_CONFIG.ok ? (
                   <Text style={s.hint}>
                     Trying to reach {API_CONFIG.baseUrl}. Check that the server is running, the
                     phone is on the same Wi-Fi, and {API_CONFIG.baseUrl}/ opens in Safari on the
                     phone. Changed the URL? Restart Expo with npx expo start -c.
-                    {error.kind === 'rejected' ? ' Check your ingredients and try again.' : ''}
                   </Text>
                 ) : null}
                 <PrimaryButton label="Retry" onPress={onRetry} disabled={loading} />
