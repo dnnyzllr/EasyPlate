@@ -1,5 +1,7 @@
 # EasyPlate mobile (Expo, iPhone)
 
+See the [root README](../README.md) for the whole project, the API contract and the demo.
+
 Expo SDK 58 React Native app for EasyPlate. Enter the ingredients you have, find recipes, open one to see what you are missing, and tick items off a shopping list.
 
 Status: not yet tested on a physical iPhone. Typecheck, `expo-doctor` and an iOS bundle export pass, and the API logic has been run against the real server.

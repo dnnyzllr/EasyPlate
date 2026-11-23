@@ -1,5 +1,7 @@
 # EasyPlate web client
 
+See the [root README](../README.md) for the whole project, the API contract and the demo.
+
 React + Vite + TypeScript front end for EasyPlate. Enter the ingredients you have,
 get matching recipes, and tick off a shopping list for what is missing.
 
