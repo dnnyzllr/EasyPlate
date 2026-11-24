@@ -15,7 +15,7 @@ Each package has its own `package.json` and lockfile. There is no root `package.
 ## Prerequisites
 
 - Node.js 24 LTS (tested with 24.14.1) and npm 11 (tested with 11.11.0). Check with `node --version` and `npm --version`.
-- Windows with Git Bash or PowerShell. macOS and Linux should work but were not tested.
+- Windows with Git Bash or PowerShell. macOS and Linux should work but were not tested. In Windows PowerShell, if `npm` or `npx` fails with "running scripts is disabled on this system", use `npm.cmd` and `npx.cmd` instead.
 - For the iPhone app: Expo Go 58.x from the App Store and a free Expo account. See [mobile/README.md](mobile/README.md).
 - No API keys, paid services or database are needed.
 
@@ -55,8 +55,9 @@ The short version. Full steps, the Windows firewall rule and troubleshooting are
 1. Run the server as above. Keep the phone and the PC on the same Wi-Fi.
 2. In Safari on the phone, open `http://<LAN-IP>:5000/` first. It must show `EasyPlate API is running`.
 3. `cd mobile`, then copy `.env.example` to `.env` (Git Bash: `cp .env.example .env`, PowerShell: `copy .env.example .env`) and set `EXPO_PUBLIC_API_URL=http://<LAN-IP>:5000`. No trailing slash and no `/api`.
-4. `npm ci`, then `npx expo start`, and scan the QR code with Expo Go.
-5. After editing `.env`, restart Metro with `npx expo start -c`.
+4. `npm ci`, then `npx expo login` (once). Sign in to Expo Go on the phone with the same Expo account; Expo Go won't open the project otherwise.
+5. `npx expo start`, and scan the QR code with the iPhone Camera app.
+6. After editing `.env`, restart Metro with `npx expo start -c`.
 
 `localhost` on the phone is the phone, not the PC. An Expo tunnel does not expose port 5000.
 
@@ -414,7 +415,7 @@ Steps 1 to 4 use the web client at `http://localhost:5173`. The same cases work 
 - Checklist state lasts for the current session only.
 - The web client has no photo flow.
 - The mobile splash screen is not configured (`mobile/assets/splash-icon.png` is unused).
-- The iPhone app has not been tested on a physical iPhone. Typecheck, expo-doctor and an iOS export pass.
+- The iPhone app runs on a physical iPhone through Expo Go. The photo-flow checks in [mobile/README.md](mobile/README.md) haven't been walked through on a device yet.
 - Android and App Store builds are not set up. A standalone build would need HTTPS or an App Transport Security exception.
 - `pepper` is treated as black pepper.
 - Node is documented but not enforced (no `engines` field or `.nvmrc`). Adding one is a possible follow-up.

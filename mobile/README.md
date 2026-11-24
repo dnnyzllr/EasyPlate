@@ -4,7 +4,9 @@ See the [root README](../README.md) for the whole project, the API contract and 
 
 Expo SDK 58 React Native app for EasyPlate. Enter the ingredients you have, find recipes, open one to see what you are missing, and tick items off a shopping list.
 
-Status: not yet tested on a physical iPhone. Typecheck, `expo-doctor` and an iOS bundle export pass, and the API logic has been run against the real server.
+Status: runs on a physical iPhone in Expo Go (SDK 58), loaded over Wi-Fi from a Windows PC. Typecheck, `expo-doctor` and an iOS bundle export also pass, and the API logic has been run against the real server.
+
+**Windows PowerShell note:** if `npm` or `npx` fails with "running scripts is disabled on this system", use `npm.cmd` and `npx.cmd` instead (for example `npm.cmd run dev`, `npx.cmd expo start`). They do the same thing and don't need an execution-policy change.
 
 ## 1. Prerequisites
 
@@ -55,7 +57,8 @@ npx expo login     # once
 npx expo start
 ```
 
-- Scan the QR code with the iPhone Camera app. It opens in Expo Go.
+- **Sign in on both sides before scanning.** `npx expo login` signs in the PC; it opens a browser and finishes on its own if you're already signed in to expo.dev there. Check with `npx expo whoami`. Then, in Expo Go on the iPhone, tap the avatar (top right) and sign in to the **same** account. Otherwise Expo Go stops with "You need to be signed in to Expo Go and Expo CLI", or "signed in to Expo CLI as … but not signed in to Expo Go". If you only signed in after starting Expo, restart it.
+- Scan the QR code with the iPhone Camera app. It opens in Expo Go. The first load takes up to a minute; the terminal shows `iOS Bundled … index.ts` when it's done.
 - When iOS asks to let Expo Go find devices on the **local network**, tap Allow. If you denied it earlier: Settings > Privacy & Security > Local Network > Expo Go.
 
 ## 8. After changing `.env`
@@ -85,7 +88,7 @@ Stop Metro (Ctrl+C) and run `npx expo start -c`. `EXPO_PUBLIC_*` values are inli
 - **Demo detector:** the server's fixture detector ignores image content and returns sample ingredients, and the review screen says so. The photo goes only to your own EasyPlate server on your network. The server keeps it in memory for the request and does not store or log it. No recognition service is called. See `server/docs/ingredient-detection.md`.
 - **Permissions:** Expo Go shows its own permission prompts (the strings in `app.json` apply to standalone builds). If you denied camera or photo access, re-enable it in Settings > Expo Go > Camera / Photos.
 - **Limits:** photos over 5 MB are refused before upload. The app asks for JPEG.
-- **Not tested on a physical iPhone.** On-device checks:
+- **On-device checks for the photo flow** (the app itself has been run on an iPhone, but these steps haven't been walked through on one yet):
   1. Type `milk`. Tap Choose photo and pick any photo. "Looking for ingredients…" appears, then the review screen with the demo notice. At least one item is "Not sure" and unticked.
   2. Untick one, remove one, and add `butter` via "Add something we missed". Tap "Add N to my list". You are back on search with `milk` still there, plus the confirmed items and no duplicates. No search runs until you tap Find.
   3. Tap Take photo and deny the camera permission. A notice appears and the chips are unchanged. Re-enable it in Settings > Expo Go > Camera.
@@ -100,6 +103,8 @@ Stop Metro (Ctrl+C) and run `npx expo start -c`. `EXPO_PUBLIC_*` values are inli
 | "Can't reach..." | Safari health check, firewall, same Wi-Fi, IP changed (DHCP) |
 | Timeout | Wrong IP, or the PC is on a different network |
 | QR won't open | Expo Go SDK mismatch, or not logged in |
+| "You need to be signed in to Expo Go and Expo CLI" / "not signed in to Expo Go" | Run `npx expo login` on the PC, sign in to Expo Go on the phone with the same account, then restart `npx expo start` |
+| `npm`/`npx` "cannot be loaded because running scripts is disabled" | PowerShell execution policy. Use `npm.cmd` / `npx.cmd` |
 | QR code or bundle URL has the wrong IP (common with Hyper-V, WSL or VPN adapters) | In PowerShell, set the LAN IP Metro should advertise, then start Expo: `$env:REACT_NATIVE_PACKAGER_HOSTNAME = "192.168.1.50"; npx expo start` (use your own LAN IP from `ipconfig`) |
 
 ## 12. Commands
