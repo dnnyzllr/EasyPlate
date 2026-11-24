@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "EasyPlate",
+    "slug": "easyplate",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF3E6",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "EasyPlate uses your photos to suggest the ingredients you have.",
+          "cameraPermission": "EasyPlate uses the camera to photograph your fridge and suggest ingredients.",
+          "microphonePermission": false
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "description": "Synthetic images; the fixture detector ignores content. Replace with your own photos in eval/photos/.",
+  "images": [
+    {
+      "id": "synthetic-red",
+      "file": "fixtures/synthetic-red.png",
+      "split": "dev",
+      "visible": ["Butter", "Carrots", "Eggs", "Onions"]
+    },
+    {
+      "id": "synthetic-green",
+      "file": "fixtures/synthetic-green.png",
+      "split": "dev",
+      "visible": ["spinach", "Carrots", "milk"]
+    },
+    {
+      "id": "synthetic-blue",
+      "file": "fixtures/synthetic-blue.png",
+      "split": "dev",
+      "visible": ["chicken breast", "spinach", "garlic", "rice"],
+      "notes": "opaque container on top shelf left unlabeled"
+    },
+    {
+      "id": "synthetic-heldout",
+      "file": "fixtures/synthetic-heldout.png",
+      "split": "heldout",
+      "visible": ["milk", "rice", "lemon"]
+    }
+  ]
+}
